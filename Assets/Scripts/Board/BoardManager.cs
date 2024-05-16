@@ -11,6 +11,8 @@ namespace PKPL.DiamondRush.Board
         [SerializeField] private int noOfColumns;
         [SerializeField] private Node nodePrefab;
         [SerializeField] private NodeSprites[] nodeSprites;
+        private const float tileWidth = 0.7f;
+        private const float tileHeight = 0.7f;
 
 
         private NodeBGManager[,] bgBoard;
@@ -18,8 +20,7 @@ namespace PKPL.DiamondRush.Board
         private Dictionary<NodeType, Sprite> nodeSpritesDict = new();
         private Vector2 startPos;
         private Coroutine clearCoroutine;
-        private List<NodeIndex> deletedNodes; 
-
+        private List<NodeIndex> deletedNodes;
 
         protected override void Start()
         {
@@ -29,8 +30,8 @@ namespace PKPL.DiamondRush.Board
             board = new Node[noOfRows, noOfColumns];
             deletedNodes = new();
 
-            startPos = new Vector2(transform.position.x - (noOfColumns - 1) / 2f,
-                transform.position.y + (noOfRows - 1) / 2f);
+            startPos = new Vector2(transform.position.x - (noOfColumns - 1) *tileWidth / 2f,
+                transform.position.y + (noOfRows - 1) * tileHeight / 2f);
 
             GService.OnStartGame += SpawnBoard;
             for (var i = 0; i < nodeSprites.Length; i++)
@@ -50,7 +51,7 @@ namespace PKPL.DiamondRush.Board
                 index = index == noOfRows - 1 ? 2 : 1;
                 for (var j = 0; j < noOfColumns; j++)
                 {
-                    var nodeBG = Instantiate(tileBasePrefab, new Vector2(startPos.x + j, startPos.y - i), Quaternion.identity);
+                    var nodeBG = Instantiate(tileBasePrefab, new Vector2(startPos.x + j * tileWidth, startPos.y - i * tileHeight), Quaternion.identity);
                     nodeBG.transform.SetParent(this.transform);
                     nodeBG.gameObject.name = "NodeBG-" + i + "-" + j;
                     bgBoard[i, j] = nodeBG;
@@ -75,8 +76,8 @@ namespace PKPL.DiamondRush.Board
                         nodeSprite = nodeSpritesDict[randomNodeType]; 
                     }
 
-                    var node = Instantiate(nodePrefab, new Vector2(startPos.x + col, 
-                        startPos.y - row), Quaternion.identity);
+                    var node = Instantiate(nodePrefab, new Vector2(startPos.x + col * tileWidth, 
+                        startPos.y - row * tileHeight), Quaternion.identity);
                     node.transform.SetParent(transform);
                     node.gameObject.name = "Node-" + row + "-" + col;
                     node.InitNode(randomNodeType, new NodeIndex(row, col), nodeSprite);
@@ -403,8 +404,8 @@ namespace PKPL.DiamondRush.Board
             NodeType randomNodeType = GetRandomNodeType();
             Sprite nodeSprite = nodeSpritesDict[randomNodeType];
 
-            var node = Instantiate(nodePrefab, new Vector2(startPos.x + col,
-                        startPos.y - row), Quaternion.identity);
+            var node = Instantiate(nodePrefab, new Vector2(startPos.x + col * tileWidth,
+                        startPos.y - row * tileHeight), Quaternion.identity);
             node.transform.SetParent(transform);
             node.gameObject.name = "Node-" + row + "-" + col;
             node.InitNode(randomNodeType, new NodeIndex(row, col), nodeSprite);
@@ -414,8 +415,8 @@ namespace PKPL.DiamondRush.Board
         private void SetNodeAtRowColumn(Node node,int row, int column)
         {
             board[node.Index.row, node.Index.column] = null;
-            node.transform.position = new Vector2(startPos.x + column,
-                        startPos.y - row);
+            node.transform.position = new Vector2(startPos.x + column * tileWidth,
+                        startPos.y - row * tileHeight);
             node.Index = new NodeIndex(row, column);
             node.gameObject.name = "Node-" + row + "-" + column;
             board[row, column] = node;
