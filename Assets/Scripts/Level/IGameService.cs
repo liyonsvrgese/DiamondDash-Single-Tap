@@ -4,6 +4,7 @@ namespace PKPL.DiamondRush.Level
 {
     public interface IGameService 
     {
+        bool IsTouchAvailable { get; }
         int CurrentScore { get; }
 
         event Action OnStartGame;
@@ -19,5 +20,6 @@ namespace PKPL.DiamondRush.Level
         void TriggerOnScoreChanged(int amount);
 
         void RestartScene();
+        void SetTouchAvailable(bool value);
     }
 }

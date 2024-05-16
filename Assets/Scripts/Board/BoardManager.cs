@@ -25,15 +25,27 @@ namespace PKPL.DiamondRush.Board
         protected override void Start()
         {
             base.Start();
-            bgBoard = new NodeBGManager[noOfRows, noOfColumns];
-            nodeSpritesDict = new();
-            board = new Node[noOfRows, noOfColumns];
-            deletedNodes = new();
-
+            InitCollections();
             startPos = new Vector2(transform.position.x - (noOfColumns - 1) *tileWidth / 2f,
                 transform.position.y + (noOfRows - 1) * tileHeight / 2f);
 
             GService.OnStartGame += SpawnBoard;
+            GService.OnGameOver += () =>
+              {
+                  GetComponent<BoardInputManager>().enabled = false;
+              };
+            AddNodeSpritesToDict();
+        }
+
+        private void InitCollections()
+        {
+            bgBoard = new NodeBGManager[noOfRows, noOfColumns];
+            nodeSpritesDict = new();
+            board = new Node[noOfRows, noOfColumns];
+            deletedNodes = new();
+        }
+        private void AddNodeSpritesToDict()
+        {
             for (var i = 0; i < nodeSprites.Length; i++)
             {
                 if (!nodeSpritesDict.ContainsKey(nodeSprites[i].nodeType))
@@ -69,13 +81,6 @@ namespace PKPL.DiamondRush.Board
                 {
                     NodeType randomNodeType = GetRandomNodeType();
                     Sprite nodeSprite = nodeSpritesDict[randomNodeType]; 
-
-                    while (WillCauseMatch(row, col, randomNodeType))
-                    {
-                        randomNodeType = GetRandomNodeType(); 
-                        nodeSprite = nodeSpritesDict[randomNodeType]; 
-                    }
-
                     var node = Instantiate(nodePrefab, new Vector2(startPos.x + col * tileWidth, 
                         startPos.y - row * tileHeight), Quaternion.identity);
                     node.transform.SetParent(transform);
@@ -91,48 +96,46 @@ namespace PKPL.DiamondRush.Board
             return nodeSprites[index].nodeType;
         }
 
-        public void TrySwapNodes(Node node, Vector2Int direction)
+        public void CheckForMatches(Node node)
         {
-            var target = GetNeighbor(node, VectorToDirection(direction));
-            if (target == null)
-            {
-                return;
-            }
+            GService.SetTouchAvailable(false);
+            List<Node> matches = new List<Node>();
+            matches.Add(node);
 
-            PerformSwap(node, target);
+            FindMatchesRecursively(node, matches);
 
-            List<Node> matches = FindMatchesOnBoard();
-            if (matches.Count == 0)
+            if (matches.Count >= 2)
             {
-                PerformSwap(node, target);
-            }
-            else
-            {
-                if(clearCoroutine != null)
+                if (clearCoroutine != null)
                 {
                     StopCoroutine(clearCoroutine);
                 }
                 clearCoroutine = StartCoroutine(DestroyMatches(matches));
             }
+            else
+            {
+                GService.SetTouchAvailable(true);
+            }
         }
 
-        private void PerformSwap(Node n1, Node n2)
+        private void FindMatchesRecursively(Node node, List<Node> matches)
         {
-            var tempPos = n1.transform.position;
-            var tempIndex = n1.Index;
-            var tempName = n1.name;
-
-            n1.transform.position = n2.transform.position;
-            n1.Index = n2.Index;
-            n1.name = n2.name;
-            board[n2.Index.row, n2.Index.column] = n1;
-
-            n2.transform.position = tempPos;
-            n2.Index = tempIndex;
-            n2.name = tempName;
-            board[tempIndex.row, tempIndex.column] = n2;
+            CheckMatchesInDirection(node, Direction.up, matches);
+            CheckMatchesInDirection(node, Direction.down, matches);
+            CheckMatchesInDirection(node, Direction.left, matches);
+            CheckMatchesInDirection(node, Direction.right, matches);
         }
 
+        private void CheckMatchesInDirection(Node node, Direction direction, List<Node> matches)
+        {
+            Node neighbor = GetNeighbor(node, direction);
+
+            if (neighbor != null && neighbor.Type == node.Type && !matches.Contains(neighbor))
+            {
+                matches.Add(neighbor);
+                FindMatchesRecursively(neighbor, matches);
+            }
+        }
         private Node GetNeighbor(Node node, Direction direction)
         {
             switch (direction)
@@ -180,51 +183,11 @@ namespace PKPL.DiamondRush.Board
             GService.OnStartGame -= SpawnBoard;
             clearCoroutine = null;
         }
-
-        private Direction VectorToDirection(Vector2Int vector)
-        {
-            if (vector == Vector2Int.down)
-            {
-                return Direction.down;
-            }
-            else if (vector == Vector2Int.up)
-            {
-                return Direction.up;
-            }
-            else if (vector == Vector2Int.left)
-            {
-                return Direction.left;
-            }
-            else if (vector == Vector2Int.right)
-            {
-                return Direction.right;
-            }
-            else
-            {
-                return Direction.invalid;
-            }
-        }
-
-        private List<Node> FindMatchesOnBoard()
-        {
-            List<Node> matchedNodes = new List<Node>();
-            List<Node> verticalMatches = FindVerticalMatches();
-
-            matchedNodes.AddRange(FindHorizontalMatches());
-            foreach (Node node in verticalMatches)
-            {
-                if (!matchedNodes.Contains(node))
-                {
-                    matchedNodes.Add(node);
-                }
-            }
-            return matchedNodes;
-        }
-
         private IEnumerator DestroyMatches(List<Node> matches)
         {
             if (matches == null || matches.Count == 0)
             {
+                GService.SetTouchAvailable(true);
                 yield return null ;
             }
 
@@ -240,103 +203,6 @@ namespace PKPL.DiamondRush.Board
             yield return new WaitForSeconds(0.2f);
             ApplyGravityAndRefillBoard();
         }
-
-        private bool WillCauseMatch(int row, int col, NodeType nodeType)
-        {
-            if (col >= 2 &&
-                board[row, col - 1].Type == nodeType &&
-                board[row, col - 2].Type == nodeType)
-            {
-                return true;
-            }
-
-            if (row >= 2 &&
-                board[row - 1, col].Type == nodeType &&
-                board[row - 2, col].Type == nodeType)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-
-        private List<Node> FindHorizontalMatches()
-        {
-            List<Node> matchedNodes = new List<Node>();
-
-            for (int row = 0; row < noOfRows; row++)
-            {
-                int startCol = 0;
-
-                while (startCol < noOfColumns - 2)
-                {
-                    int matchLength = 1;
-
-                    while (startCol + matchLength < noOfColumns &&
-                           AreNodesMatching(board[row, startCol], board[row, startCol + matchLength]))
-                    {
-                        matchLength++;
-                    }
-
-                    if (matchLength >= 3)
-                    {
-                        for (int i = 0; i < matchLength; i++)
-                        {
-                            matchedNodes.Add(board[row, startCol + i]);
-                        }
-                    }
-
-                    startCol += matchLength;
-                }
-            }
-
-            return matchedNodes;
-        }
-
-        private List<Node> FindVerticalMatches()
-        {
-            List<Node> matchedNodes = new List<Node>();
-
-            for (int col = 0; col < noOfColumns; col++)
-            {
-                int startRow = 0;
-
-                while (startRow < noOfRows - 2)
-                {
-                    int matchLength = 1;
-
-                    while (startRow + matchLength < noOfRows &&
-                           AreNodesMatching(board[startRow, col], board[startRow + matchLength, col]))
-                    {
-                        matchLength++;
-                    }
-
-                    if (matchLength >= 3)
-                    {
-                        for (int i = 0; i < matchLength; i++)
-                        {
-                            matchedNodes.Add(board[startRow + i, col]);
-                        }
-                    }
-
-                    startRow += matchLength;
-                }
-            }
-
-            return matchedNodes;
-        }
-
-        private bool AreNodesMatching(Node node1, Node node2)
-        {
-            if (node1 == null || node2 == null)
-            {
-                return false;
-            }
-
-            return node1.Type == node2.Type;
-        }
-
         private void ApplyGravityAndRefillBoard()
         {
             HashSet<int> affectedColumns = new HashSet<int>();
@@ -387,16 +253,7 @@ namespace PKPL.DiamondRush.Board
                 availableItems.Clear();
             }
             deletedNodes.Clear();
-            var matches = FindMatchesOnBoard();
-            if(matches.Count >0)
-            {
-                if (clearCoroutine != null)
-                {
-                    StopCoroutine(clearCoroutine);
-                }
-                clearCoroutine = StartCoroutine(DestroyMatches(matches));
-            }
-
+            GService.SetTouchAvailable(true);
         }
 
         private void SpawnNodeAtRowColumn(int row, int col)

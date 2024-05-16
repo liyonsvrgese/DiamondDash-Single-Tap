@@ -35,10 +35,8 @@ namespace PKPL.DiamondRush.Board
     }
     public enum NodeType
     {
-        Red,
+        Green,
         Yellow,
-        Blue,
         Violet,
-        Green
     }
 }

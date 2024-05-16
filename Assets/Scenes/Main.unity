@@ -851,7 +851,7 @@ Canvas:
   m_GameObject: {fileID: 481863445}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 519420031}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
@@ -1666,7 +1666,7 @@ Canvas:
   m_GameObject: {fileID: 1159850667}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 519420031}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
@@ -2335,7 +2335,6 @@ GameObject:
   - component: {fileID: 1943267276}
   - component: {fileID: 1943267275}
   - component: {fileID: 1943267277}
-  - component: {fileID: 1943267278}
   m_Layer: 0
   m_Name: BoardManager
   m_TagString: Untagged
@@ -2360,16 +2359,12 @@ MonoBehaviour:
   noOfColumns: 10
   nodePrefab: {fileID: 4503963847921192676, guid: d17b46a48cf80264eb80ad1945ec6085, type: 3}
   nodeSprites:
-  - nodeSprite: {fileID: -457484645, guid: 8e9d6bc650d5c5848a3c2cba0e189256, type: 3}
+  - nodeSprite: {fileID: 1260498918, guid: 8e9d6bc650d5c5848a3c2cba0e189256, type: 3}
     nodeType: 0
   - nodeSprite: {fileID: 1096646348, guid: 8e9d6bc650d5c5848a3c2cba0e189256, type: 3}
     nodeType: 1
-  - nodeSprite: {fileID: 2035060880, guid: 8e9d6bc650d5c5848a3c2cba0e189256, type: 3}
-    nodeType: 2
   - nodeSprite: {fileID: 43474788, guid: 8e9d6bc650d5c5848a3c2cba0e189256, type: 3}
-    nodeType: 3
-  - nodeSprite: {fileID: 1260498918, guid: 8e9d6bc650d5c5848a3c2cba0e189256, type: 3}
-    nodeType: 4
+    nodeType: 2
 --- !u!4 &1943267276
 Transform:
   m_ObjectHideFlags: 0
@@ -2395,18 +2390,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8db13aafdab3aba4680e4bb10e3bf806, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1943267278
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1943267274}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1642042060ac57f4f8e47707825a3de9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &2014591165

@@ -12,20 +12,24 @@ namespace PKPL.DiamondRush.Level
 
         private int currentScore;
 
+        public bool IsTouchAvailable { get; private set; }
+
         public int CurrentScore => currentScore;
 
         private void Start()
         {
-            Screen.orientation = ScreenOrientation.LandscapeLeft;
+            Screen.orientation = ScreenOrientation.Portrait;
         }
 
         public void TriggerOnStartGame()
         {
+            IsTouchAvailable = true;
             OnStartGame?.Invoke();
         }
 
         public void TriggerGameOver()
         {
+            IsTouchAvailable = false;
             OnGameOver?.Invoke();
         }
 
@@ -38,6 +42,11 @@ namespace PKPL.DiamondRush.Level
         public void RestartScene()
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        public void SetTouchAvailable(bool value = false)
+        {
+            IsTouchAvailable = value;
         }
     }
 }
