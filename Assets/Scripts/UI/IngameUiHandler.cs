@@ -10,6 +10,7 @@ namespace PKPL.DiamondRush.UI
         [SerializeField] private Image timeSliderFillImage;
         [SerializeField] private TextMeshProUGUI timeText;
         [SerializeField] private TextMeshProUGUI scoreTxt;
+        [SerializeField] private PowerupManager powerupManager;
 
         private float timer =0f;
         private bool isGameRunning = false;
@@ -18,6 +19,7 @@ namespace PKPL.DiamondRush.UI
         {
             base.Start();
             timeSlider.gameObject.SetActive(false);
+            powerupManager.gameObject.SetActive(false);
             timeText.gameObject.SetActive(false);
             scoreTxt.gameObject.SetActive(false);
             GService.OnScoreChanged += UpdateScoreText;
@@ -25,6 +27,8 @@ namespace PKPL.DiamondRush.UI
             {
                 isGameRunning = true;
                 timeSlider.gameObject.SetActive(true);
+                powerupManager.gameObject.SetActive(true);
+                powerupManager.Init();
                 timeText.gameObject.SetActive(true);
                 scoreTxt.gameObject.SetActive(true);
                 SetSlider();
@@ -53,8 +57,7 @@ namespace PKPL.DiamondRush.UI
             {
                 GService.OnScoreChanged -= UpdateScoreText;
             }
-        }
-
+        } 
         private void SetSlider()
         {
             timeSlider.maxValue = GameConstants.MAX_GAME_TIME;

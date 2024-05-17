@@ -99,6 +99,14 @@ namespace PKPL.DiamondRush.Board
         public void CheckForMatches(Node node)
         {
             GService.SetTouchAvailable(false);
+
+            if(GService.IsPowerupActivated)
+            {
+                ProcessPowerup(node);
+                GService.TriggerOnPowerupComplete();
+                GService.SetTouchAvailable(true);
+                return;
+            }
             List<Node> matches = new List<Node>();
             matches.Add(node);
 
@@ -106,11 +114,7 @@ namespace PKPL.DiamondRush.Board
 
             if (matches.Count >= 2)
             {
-                if (clearCoroutine != null)
-                {
-                    StopCoroutine(clearCoroutine);
-                }
-                clearCoroutine = StartCoroutine(DestroyMatches(matches));
+                ClearMatchesAndRefill(matches);
             }
             else
             {
@@ -177,7 +181,82 @@ namespace PKPL.DiamondRush.Board
                     return null;
             }
         }
+        private void ProcessPowerup(Node node)
+        {
+            List<Node> matches = new() ;
+            switch(GService.PowerupType)
+            {
+                case AbilityType.None:
+                    break ;
+                case AbilityType.Bomb:
+                    matches =GetBombNodes(node);
+                    break;
+                case AbilityType.ColorDestroy:
+                    matches = GetColorDestroyNodes(node);
+                    break;
+            }
+            ClearMatchesAndRefill(matches);     
+        }
 
+        private List<Node> GetBombNodes(Node node)
+        {
+            List<Node> neighbors = new();
+            neighbors.Add(node);
+
+            int[] rowOffsets = { -1, -1, -1, 0, 0, 0, 1, 1, 1 };
+            int[] colOffsets = { -1, 0, 1, -1, 0, 1, -1, 0, 1 };
+
+            for (int i = 0; i < rowOffsets.Length; i++)
+            {
+                int newRow = node.Index.row + rowOffsets[i];
+                int newCol = node.Index.column + colOffsets[i];
+
+                if (IsValidPosition(newRow, newCol) && !(newRow == node.Index.row && newCol == node.Index.column))
+                {
+                    neighbors.Add(board[newRow, newCol]);
+                }
+            }
+            return neighbors;
+        }
+
+        private void ClearMatchesAndRefill(List<Node> matches)
+        {
+            if (matches != null && matches.Count > 0)
+            {
+                if (clearCoroutine != null)
+                {
+                    StopCoroutine(clearCoroutine);
+                }
+                clearCoroutine = StartCoroutine(DestroyMatches(matches));
+            }
+            else
+            {
+                GService.SetTouchAvailable(true);
+            }
+        }
+        private bool IsValidPosition(int row, int col)
+        {
+            return row >= 0 && row < noOfRows && col >= 0 && col < noOfColumns;
+        }
+
+        private List<Node> GetColorDestroyNodes(Node node)
+        {
+            var nodeType = node.Type;
+            List<Node> nodesOfType = new List<Node>();
+
+            for (int row = 0; row < noOfRows; row++)
+            {
+                for (int col = 0; col < noOfColumns; col++)
+                {
+                    if (board[row, col] != null && board[row, col].Type == nodeType)
+                    {
+                        nodesOfType.Add(board[row, col]);
+                    }
+                }
+            }
+
+            return nodesOfType;
+        }
         private void OnDisable()
         {
             GService.OnStartGame -= SpawnBoard;
@@ -296,5 +375,11 @@ namespace PKPL.DiamondRush.Board
         invalid
     }
 
+    public enum AbilityType
+    {
+        None,
+        Bomb,
+        ColorDestroy
+    }
 
 }
