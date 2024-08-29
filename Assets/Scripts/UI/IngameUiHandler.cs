@@ -6,6 +6,7 @@ namespace PKPL.DiamondRush.UI
 {
     public class IngameUiHandler : MonoBehaviourWithGameService
     {
+        [SerializeField] private GameObject uiPanel;
         [SerializeField] private Slider timeSlider;
         [SerializeField] private Image timeSliderFillImage;
         [SerializeField] private TextMeshProUGUI timeText;
@@ -18,6 +19,7 @@ namespace PKPL.DiamondRush.UI
         protected override void Start()
         {
             base.Start();
+            uiPanel.SetActive(false);
             timeSlider.gameObject.SetActive(false);
             powerupManager.gameObject.SetActive(false);
             timeText.gameObject.SetActive(false);
@@ -26,6 +28,7 @@ namespace PKPL.DiamondRush.UI
             GService.OnStartGame += () =>
             {
                 isGameRunning = true;
+                uiPanel.SetActive(true);
                 timeSlider.gameObject.SetActive(true);
                 powerupManager.gameObject.SetActive(true);
                 powerupManager.Init();
