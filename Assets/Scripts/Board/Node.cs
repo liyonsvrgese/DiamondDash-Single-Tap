@@ -4,7 +4,6 @@ namespace PKPL.DiamondRush.Board
 {
     public class Node : MonoBehaviour
     {
-        [SerializeField] private SpriteRenderer spriteRenderer;
         private NodeType nodeType;
         private NodeIndex index;
 
@@ -15,10 +14,9 @@ namespace PKPL.DiamondRush.Board
             set { index = value; }
         }
 
-        public void InitNode(NodeType type,NodeIndex pos, Sprite sprite)
+        public void InitNode(NodeType type,NodeIndex pos)
         {
             nodeType = type;
-            spriteRenderer.sprite = sprite;
             index = pos;
         }
     }
@@ -37,6 +35,6 @@ namespace PKPL.DiamondRush.Board
     {
         Green,
         Yellow,
-        Violet,
+        Red,
     }
 }

@@ -38,7 +38,11 @@ namespace PKPL.DiamondRush.UI
                 UpdateScoreText(0);
 
             };
-            GService.OnGameOver += () => isGameRunning = false;
+            GService.OnGameOver += () =>
+            {
+                isGameRunning = false;
+                uiPanel.SetActive(false);
+            };
             
         }
         private void Update()

@@ -4,7 +4,7 @@ namespace PKPL.DiamondRush
 {
     public class GameConstants : MonoBehaviour
     {
-        public const int MAX_GAME_TIME = 10000;
+        public const int MAX_GAME_TIME = 250;
 
         public const string NODE_TAG = "Node";
 

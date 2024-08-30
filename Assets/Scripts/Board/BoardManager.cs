@@ -9,15 +9,14 @@ namespace PKPL.DiamondRush.Board
         [SerializeField] private NodeBGManager tileBasePrefab;
         [SerializeField] private int noOfRows;
         [SerializeField] private int noOfColumns;
-        [SerializeField] private Node nodePrefab;
-        [SerializeField] private NodeSprites[] nodeSprites;
-        private const float tileWidth = 0.7f;
-        private const float tileHeight = 0.7f;
+        [SerializeField] private NodeData[] nodePrefabs;
+        [SerializeField] private float tileWidth;
+        [SerializeField] private float tileHeight;
 
 
         private NodeBGManager[,] bgBoard;
         private Node[,] board;
-        private Dictionary<NodeType, Sprite> nodeSpritesDict = new();
+        private Dictionary<NodeType, Node> nodePrefabsDict = new();
         private Vector2 startPos;
         private Coroutine clearCoroutine;
         private List<NodeIndex> deletedNodes;
@@ -40,17 +39,17 @@ namespace PKPL.DiamondRush.Board
         private void InitCollections()
         {
             bgBoard = new NodeBGManager[noOfRows, noOfColumns];
-            nodeSpritesDict = new();
+            nodePrefabsDict = new();
             board = new Node[noOfRows, noOfColumns];
             deletedNodes = new();
         }
         private void AddNodeSpritesToDict()
         {
-            for (var i = 0; i < nodeSprites.Length; i++)
+            for (var i = 0; i < nodePrefabs.Length; i++)
             {
-                if (!nodeSpritesDict.ContainsKey(nodeSprites[i].nodeType))
+                if (!nodePrefabsDict.ContainsKey(nodePrefabs[i].nodeType))
                 {
-                    nodeSpritesDict.Add(nodeSprites[i].nodeType, nodeSprites[i].nodeSprite);
+                    nodePrefabsDict.Add(nodePrefabs[i].nodeType, nodePrefabs[i].nodePrefab);
                 }
             }
         }
@@ -80,20 +79,20 @@ namespace PKPL.DiamondRush.Board
                 for (int col = 0; col < noOfColumns; col++)
                 {
                     NodeType randomNodeType = GetRandomNodeType();
-                    Sprite nodeSprite = nodeSpritesDict[randomNodeType]; 
-                    var node = Instantiate(nodePrefab, new Vector2(startPos.x + col * tileWidth, 
+                    Node prefab = nodePrefabsDict[randomNodeType]; 
+                    var node = Instantiate(prefab, new Vector2(startPos.x + col * tileWidth, 
                         startPos.y - row * tileHeight), Quaternion.identity);
                     node.transform.SetParent(transform);
                     node.gameObject.name = "Node-" + row + "-" + col;
-                    node.InitNode(randomNodeType, new NodeIndex(row, col), nodeSprite);
+                    node.InitNode(randomNodeType, new NodeIndex(row, col));
                     board[row, col] = node;
                 }
             }
         }
          private NodeType GetRandomNodeType()
         {
-            var index = Random.Range(0, nodeSprites.Length);
-            return nodeSprites[index].nodeType;
+            var index = Random.Range(0, nodePrefabs.Length);
+            return nodePrefabs[index].nodeType;
         }
 
         public void CheckForMatches(Node node)
@@ -338,13 +337,13 @@ namespace PKPL.DiamondRush.Board
         private void SpawnNodeAtRowColumn(int row, int col)
         {
             NodeType randomNodeType = GetRandomNodeType();
-            Sprite nodeSprite = nodeSpritesDict[randomNodeType];
+            Node node = nodePrefabsDict[randomNodeType];
 
-            var node = Instantiate(nodePrefab, new Vector2(startPos.x + col * tileWidth,
+            var nodeInstance = Instantiate(node, new Vector2(startPos.x + col * tileWidth,
                         startPos.y - row * tileHeight), Quaternion.identity);
-            node.transform.SetParent(transform);
-            node.gameObject.name = "Node-" + row + "-" + col;
-            node.InitNode(randomNodeType, new NodeIndex(row, col), nodeSprite);
+            nodeInstance.transform.SetParent(transform);
+            nodeInstance.gameObject.name = "Node-" + row + "-" + col;
+            nodeInstance.InitNode(randomNodeType, new NodeIndex(row, col));
             board[row, col] = node;
         }
 
@@ -360,9 +359,9 @@ namespace PKPL.DiamondRush.Board
 
     }
     [System.Serializable]
-    public struct NodeSprites
+    public struct NodeData
     {
-        public Sprite nodeSprite;
+        public Node nodePrefab;
         public NodeType nodeType;
     }
 
