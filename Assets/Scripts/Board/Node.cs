@@ -8,16 +8,19 @@ namespace PKPL.DiamondRush.Board
         private NodeIndex index;
 
         public NodeType Type => nodeType;
-        public NodeIndex Index
+        public NodeIndex Index => index;
+
+        public void SetIndex(int row, int col)
         {
-            get { return index; }
-            set { index = value; }
+            index ??= new NodeIndex(row, col);
+            index.row = row;
+            index.column = col;
         }
 
-        public void InitNode(NodeType type,NodeIndex pos)
+        public void InitNode(NodeType type, int row, int col)
         {
             nodeType = type;
-            index = pos;
+            SetIndex(row, col);
         }
     }
     public class NodeIndex

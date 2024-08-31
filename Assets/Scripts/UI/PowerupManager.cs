@@ -22,11 +22,13 @@ namespace PKPL.DiamondRush.UI
             GService.OnScoreChanged += UpdateSlider;
             GService.OnPowerupComplete += OnPowerupComplete;
         }
+
         private void SetPowerup()
         {
             currentPowerupType = Random.Range(1,powerupSprites.Length+1);
             powerupBtnImage.sprite = powerupSprites[currentPowerupType - 1];
         }
+
         private void UpdateSlider(int currentScore)
         {
             powerupSlider.value += currentScore - prevScore;

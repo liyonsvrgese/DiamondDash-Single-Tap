@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using DG.Tweening;
 
 namespace PKPL.DiamondRush.Board
 {
@@ -13,6 +14,11 @@ namespace PKPL.DiamondRush.Board
         [SerializeField] private float tileWidth;
         [SerializeField] private float tileHeight;
 
+        [Header("Animation")]
+        [SerializeField] private float moveDownAmount;
+        [SerializeField] private float goToTopAnimDuration ;
+        [SerializeField] private float moveDownAnimTime;
+        [SerializeField] private float moveToNewPosAnimTime;
 
         private NodeBGManager[,] bgBoard;
         private Node[,] board;
@@ -32,6 +38,7 @@ namespace PKPL.DiamondRush.Board
             GService.OnGameOver += () =>
               {
                   GetComponent<BoardInputManager>().enabled = false;
+                  gameObject.SetActive(false);
               };
             AddNodeSpritesToDict();
         }
@@ -84,7 +91,7 @@ namespace PKPL.DiamondRush.Board
                         startPos.y - row * tileHeight), Quaternion.identity);
                     node.transform.SetParent(transform);
                     node.gameObject.name = "Node-" + row + "-" + col;
-                    node.InitNode(randomNodeType, new NodeIndex(row, col));
+                    node.InitNode(randomNodeType,row, col);
                     board[row, col] = node;
                 }
             }
@@ -266,19 +273,20 @@ namespace PKPL.DiamondRush.Board
             if (matches == null || matches.Count == 0)
             {
                 GService.SetTouchAvailable(true);
-                yield return null ;
+                yield return null;
             }
 
-            yield return new WaitForSeconds(0.2f);
+            Vector3 topPosition = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height, 0));
             foreach (var node in matches)
             {
                 deletedNodes.Add(node.Index);
                 GService.TriggerOnScoreChanged(GameConstants.SCORE_FOR_ONE_ITEM);
-                Destroy(node.gameObject);
+                FlyToTopAnimation(node, topPosition);
                 board[node.Index.row, node.Index.column] = null;
+                yield return new WaitForSeconds(0.015f);
             }
 
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(moveDownAnimTime);
             ApplyGravityAndRefillBoard();
         }
         private void ApplyGravityAndRefillBoard()
@@ -334,25 +342,36 @@ namespace PKPL.DiamondRush.Board
             GService.SetTouchAvailable(true);
         }
 
+        private void FlyToTopAnimation(Node node, Vector3 topPosition)
+        {
+            topPosition.z = node.transform.position.z - 1;
+            Sequence sequence = DOTween.Sequence();
+            var moveDownAmt = UnityEngine.Random.Range(0,moveDownAmount);
+            sequence.Append(node.transform.DOMoveY(node.transform.position.y - moveDownAmt, moveDownAnimTime));
+            sequence.Append(node.transform.DOMove(topPosition, goToTopAnimDuration));
+            sequence.OnComplete(() => Destroy(node.gameObject));
+        }
+
         private void SpawnNodeAtRowColumn(int row, int col)
         {
             NodeType randomNodeType = GetRandomNodeType();
-            Node node = nodePrefabsDict[randomNodeType];
+            Node prefab = nodePrefabsDict[randomNodeType];
 
-            var nodeInstance = Instantiate(node, new Vector2(startPos.x + col * tileWidth,
+            var nodeInstance = Instantiate(prefab, new Vector2(startPos.x + col * tileWidth,
                         startPos.y - row * tileHeight), Quaternion.identity);
+            nodeInstance.InitNode(randomNodeType, row, col);
             nodeInstance.transform.SetParent(transform);
             nodeInstance.gameObject.name = "Node-" + row + "-" + col;
-            nodeInstance.InitNode(randomNodeType, new NodeIndex(row, col));
-            board[row, col] = node;
+            board[row, col] = nodeInstance;
         }
 
         private void SetNodeAtRowColumn(Node node,int row, int column)
         {
             board[node.Index.row, node.Index.column] = null;
-            node.transform.position = new Vector2(startPos.x + column * tileWidth,
-                        startPos.y - row * tileHeight);
-            node.Index = new NodeIndex(row, column);
+            Vector2 newPosition = new Vector2(startPos.x + column * tileWidth,
+                                          startPos.y - row * tileHeight);
+            node.transform.DOMove(newPosition, moveToNewPosAnimTime).SetEase(Ease.OutQuad);
+            node.SetIndex(row, column);
             node.gameObject.name = "Node-" + row + "-" + column;
             board[row, column] = node;
         }

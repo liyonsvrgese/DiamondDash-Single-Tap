@@ -368,7 +368,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -603,7 +603,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 540, y: -326.33234}
+  m_AnchoredPosition: {x: 540, y: -411.5559}
   m_SizeDelta: {x: 403.1, y: 175.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &213217584
@@ -642,7 +642,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 540, y: -539.2039}
+  m_AnchoredPosition: {x: 540, y: -681.24316}
   m_SizeDelta: {x: 400, y: 160.4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &213217586
@@ -2747,7 +2747,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 540, y: -133.11078}
+  m_AnchoredPosition: {x: 540, y: -161.51863}
   m_SizeDelta: {x: 747, y: 121.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1433206718
@@ -3290,6 +3290,10 @@ MonoBehaviour:
     nodeType: 2
   tileWidth: 0.7
   tileHeight: 0.8
+  moveDownAmount: 0.5
+  goToTopAnimDuration: 1
+  moveDownAnimTime: 0.25
+  moveToNewPosAnimTime: 0.35
 --- !u!4 &1943267276
 Transform:
   m_ObjectHideFlags: 0
@@ -3383,8 +3387,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
