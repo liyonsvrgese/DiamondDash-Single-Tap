@@ -23,7 +23,9 @@ namespace PKPL.DiamondRush.Level
         public PowerupType PowerupType { get ; set ; }
 
         public int GetAndResetMovesCount => boardManager.GetAndResetMovesCount();
-        private bool isTwoxActive = false;
+
+        public bool IsTwoxActive  {get ; private set;}
+
 
         private void Start()
         {
@@ -46,7 +48,7 @@ namespace PKPL.DiamondRush.Level
 
         public void IncreaseScoreForOneBlock()
         {
-            var amount = isTwoxActive ? GameConstants.SCORE_FOR_ONE_ITEM * 2 :
+            var amount = IsTwoxActive ? GameConstants.SCORE_FOR_ONE_ITEM * 2 :
                 GameConstants.SCORE_FOR_ONE_ITEM;
             this.currentScore += amount;
             OnScoreChanged?.Invoke(currentScore);
@@ -62,7 +64,15 @@ namespace PKPL.DiamondRush.Level
             IsTouchAvailable = value;
         }
 
-        public void ActivateClickablePowerup(bool value, PowerupType type = PowerupType.None)
+        public bool CanActivatePowerup(PowerupType type)
+        {
+            if (type == PowerupType.TwoxScore && IsTwoxActive)
+                return false;
+            else 
+                return !IsClickablePowerupActivated;
+        }
+
+        public void SetClickablePowerup(bool value, PowerupType type = PowerupType.None)
         {
             IsClickablePowerupActivated = value;
             PowerupType = type;
@@ -70,13 +80,13 @@ namespace PKPL.DiamondRush.Level
 
         public void TriggerOnPowerupComplete()
         {
-            ActivateClickablePowerup(false);
+            SetClickablePowerup(false);
             OnPowerupComplete?.Invoke();
         }
 
         public void SetTwoxStatus(bool value)
         {
-            isTwoxActive = value;
+            IsTwoxActive = value;
         }
     }
 }

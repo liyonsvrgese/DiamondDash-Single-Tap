@@ -12,7 +12,7 @@ namespace PKPL.DiamondRush
 
         public const int POWERUP_REQUIREMENT = 10000;
 
-        public const int TWOX_THRESHOLD = 2;
+        public const int TWOX_THRESHOLD = 5;
 
         public const int TWOX_TIME = 10;
     }

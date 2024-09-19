@@ -9,42 +9,50 @@ namespace PKPL.DiamondRush.UI
     public class PowerupManager : MonoBehaviourWithGameService
     {
         [SerializeField] private Slider powerupSlider;
-        [SerializeField] private Button powerupButton;
-        [SerializeField] private Sprite[] powerupSprites;
-        [SerializeField] private Image powerupBtnImage;
+        [SerializeField] private GameObject[] powerupHolders;
         [SerializeField] GameObject powerupTimerUi;
         [SerializeField] TextMeshProUGUI powerupTimerTxt;
+        [SerializeField] private PowerupController powerupPrefab;
+
         private int prevScore =0;
-        private PowerupType currentPowerupType;
         private int powerupCount = 0;
+        private int powerupHolderIndex = 0;
         public void Init()
         {
             base.Start();
-            powerupButton.interactable = false;
             powerupTimerUi.SetActive(false);
             powerupSlider.maxValue = GameConstants.POWERUP_REQUIREMENT;
             powerupSlider.value = 0;
-            SetPowerup();
             GService.OnScoreChanged += UpdateSlider;
         }
 
         private void SetPowerup()
         {
+            if(powerupHolderIndex < 0)
+                powerupHolderIndex = 0;
+            if (powerupHolderIndex == powerupHolders.Length)
+                return;
+
             powerupCount++;
+            powerupSlider.value = 0;
+            var powerupType = PowerupType.Bomb;
             if (powerupCount == GameConstants.TWOX_THRESHOLD)
             {
-                currentPowerupType = PowerupType.TwoxScore;
+                powerupType = PowerupType.TwoxScore;
                 powerupCount = 0;
             }
             else
             {
                 int moves = GService.GetAndResetMovesCount;
                 if (moves < 10)
-                    currentPowerupType = PowerupType.ColorDestroy;
+                    powerupType = PowerupType.ColorDestroy;
                 else if (moves > 10)
-                    currentPowerupType = PowerupType.Bomb;
+                    powerupType = PowerupType.Bomb;
             }
-            powerupBtnImage.sprite = powerupSprites[(int)currentPowerupType];
+            var instance = Instantiate(powerupPrefab,powerupHolders[powerupHolderIndex].transform);
+            powerupHolderIndex++;    
+            instance.InitialisePowerup(powerupType,OnPowerupButtonClicked);
+
         }
 
         private void UpdateSlider(int currentScore)
@@ -52,34 +60,25 @@ namespace PKPL.DiamondRush.UI
             powerupSlider.value += currentScore - prevScore;
             if (powerupSlider.value >= GameConstants.POWERUP_REQUIREMENT)
             {
-                ActivatePowerupButton();
                 powerupSlider.value = powerupSlider.maxValue;
+                SetPowerup();
             }
             prevScore = currentScore;
-
         }
 
-        private void ActivatePowerupButton()
+        public void OnPowerupButtonClicked(PowerupType type)
         {
-            powerupButton.interactable = true;
-        }
-
-        public void OnPowerupButtonClicked()
-        {
-            powerupButton.interactable = false;
-            switch (currentPowerupType)
+            powerupHolderIndex--;
+            switch (type)
             {
                 case PowerupType.Bomb:
                 case PowerupType.ColorDestroy:
-                    GService.ActivateClickablePowerup(true,currentPowerupType);
+                    GService.SetClickablePowerup(true,type);
                     break;
                 case PowerupType.TwoxScore:
                     StartCoroutine(TwoxCountDown(GameConstants.TWOX_TIME));
                     break;
-            }
-
-            powerupSlider.value = 0;
-            SetPowerup();
+            };
         }
 
         private void OnDisable()
