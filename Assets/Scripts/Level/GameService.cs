@@ -11,6 +11,7 @@ namespace PKPL.DiamondRush.Level
         public event Action<int> OnScoreChanged;
         public event Action OnGameOver;
         public event Action OnPowerupComplete;
+        public BoardManager boardManager;
 
         private int currentScore;
 
@@ -18,14 +19,17 @@ namespace PKPL.DiamondRush.Level
 
         public int CurrentScore => currentScore;
 
-        public bool IsPowerupActivated { get ; private set ; }
-        public AbilityType PowerupType { get ; set ; }
+        public bool IsClickablePowerupActivated { get ; private set ; }
+        public PowerupType PowerupType { get ; set ; }
+
+        public int GetAndResetMovesCount => boardManager.GetAndResetMovesCount();
+        private bool isTwoxActive = false;
 
         private void Start()
         {
             Screen.orientation = ScreenOrientation.Portrait;
-            IsPowerupActivated = false;
-            PowerupType = AbilityType.None;
+            IsClickablePowerupActivated = false;
+            PowerupType = PowerupType.None;
         }
 
         public void TriggerOnStartGame()
@@ -40,8 +44,10 @@ namespace PKPL.DiamondRush.Level
             OnGameOver?.Invoke();
         }
 
-        public void TriggerOnScoreChanged(int amount)
+        public void IncreaseScoreForOneBlock()
         {
+            var amount = isTwoxActive ? GameConstants.SCORE_FOR_ONE_ITEM * 2 :
+                GameConstants.SCORE_FOR_ONE_ITEM;
             this.currentScore += amount;
             OnScoreChanged?.Invoke(currentScore);
         }
@@ -56,16 +62,21 @@ namespace PKPL.DiamondRush.Level
             IsTouchAvailable = value;
         }
 
-        public void ActivatePowerup(bool value, AbilityType type = AbilityType.None)
+        public void ActivateClickablePowerup(bool value, PowerupType type = PowerupType.None)
         {
-            IsPowerupActivated = value;
+            IsClickablePowerupActivated = value;
             PowerupType = type;
         }
 
         public void TriggerOnPowerupComplete()
         {
-            ActivatePowerup(false);
+            ActivateClickablePowerup(false);
             OnPowerupComplete?.Invoke();
+        }
+
+        public void SetTwoxStatus(bool value)
+        {
+            isTwoxActive = value;
         }
     }
 }

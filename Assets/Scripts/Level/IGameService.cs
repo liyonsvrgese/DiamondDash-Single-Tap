@@ -5,8 +5,8 @@ namespace PKPL.DiamondRush.Level
 {
     public interface IGameService 
     {
-        bool IsPowerupActivated { get; }
-        AbilityType PowerupType { get; set; }
+        bool IsClickablePowerupActivated { get; }
+        PowerupType PowerupType { get; set; }
         bool IsTouchAvailable { get; }
         int CurrentScore { get; }
 
@@ -18,17 +18,19 @@ namespace PKPL.DiamondRush.Level
 
         event Action OnGameOver;
 
+        int GetAndResetMovesCount { get; }
         void TriggerOnStartGame();
 
         void TriggerGameOver();
 
-        void TriggerOnScoreChanged(int amount);
+        void SetTwoxStatus(bool value);
+        void IncreaseScoreForOneBlock();
 
         void TriggerOnPowerupComplete();
 
         void RestartScene();
         void SetTouchAvailable(bool value);
-        void ActivatePowerup(bool value, AbilityType type = AbilityType.None);
+        void ActivateClickablePowerup(bool value, PowerupType type = PowerupType.None);
 
     }
 }

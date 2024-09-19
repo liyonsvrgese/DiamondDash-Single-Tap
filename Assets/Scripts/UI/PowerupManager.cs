@@ -1,4 +1,6 @@
 using PKPL.DiamondRush.Board;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,23 +12,39 @@ namespace PKPL.DiamondRush.UI
         [SerializeField] private Button powerupButton;
         [SerializeField] private Sprite[] powerupSprites;
         [SerializeField] private Image powerupBtnImage;
+        [SerializeField] GameObject powerupTimerUi;
+        [SerializeField] TextMeshProUGUI powerupTimerTxt;
         private int prevScore =0;
-        private int currentPowerupType;
+        private PowerupType currentPowerupType;
+        private int powerupCount = 0;
         public void Init()
         {
             base.Start();
             powerupButton.interactable = false;
+            powerupTimerUi.SetActive(false);
             powerupSlider.maxValue = GameConstants.POWERUP_REQUIREMENT;
             powerupSlider.value = 0;
             SetPowerup();
             GService.OnScoreChanged += UpdateSlider;
-            GService.OnPowerupComplete += OnPowerupComplete;
         }
 
         private void SetPowerup()
         {
-            currentPowerupType = Random.Range(1,powerupSprites.Length+1);
-            powerupBtnImage.sprite = powerupSprites[currentPowerupType - 1];
+            powerupCount++;
+            if (powerupCount == GameConstants.TWOX_THRESHOLD)
+            {
+                currentPowerupType = PowerupType.TwoxScore;
+                powerupCount = 0;
+            }
+            else
+            {
+                int moves = GService.GetAndResetMovesCount;
+                if (moves < 10)
+                    currentPowerupType = PowerupType.ColorDestroy;
+                else if (moves > 10)
+                    currentPowerupType = PowerupType.Bomb;
+            }
+            powerupBtnImage.sprite = powerupSprites[(int)currentPowerupType];
         }
 
         private void UpdateSlider(int currentScore)
@@ -49,7 +67,19 @@ namespace PKPL.DiamondRush.UI
         public void OnPowerupButtonClicked()
         {
             powerupButton.interactable = false;
-            GService.ActivatePowerup(true, (AbilityType)currentPowerupType);
+            switch (currentPowerupType)
+            {
+                case PowerupType.Bomb:
+                case PowerupType.ColorDestroy:
+                    GService.ActivateClickablePowerup(true,currentPowerupType);
+                    break;
+                case PowerupType.TwoxScore:
+                    StartCoroutine(TwoxCountDown(GameConstants.TWOX_TIME));
+                    break;
+            }
+
+            powerupSlider.value = 0;
+            SetPowerup();
         }
 
         private void OnDisable()
@@ -57,14 +87,22 @@ namespace PKPL.DiamondRush.UI
             if (!IsGSNull)
             {
                 GService.OnScoreChanged -= UpdateSlider;
-                GService.OnPowerupComplete -= OnPowerupComplete;
             }
         }
 
-        private void OnPowerupComplete()
+        private IEnumerator TwoxCountDown(int seconds)
         {
-            powerupSlider.value = 0;
-            SetPowerup();
+            powerupTimerUi.SetActive(true);
+            powerupTimerTxt.text = seconds.ToString();
+            GService.SetTwoxStatus(true);
+            while (seconds > 0)
+            {
+                powerupTimerTxt.text = seconds.ToString();
+                seconds--;
+                yield return new WaitForSeconds(1f);
+            }
+            powerupTimerUi.SetActive(false);
+            GService.SetTwoxStatus(false);
         }
     }
 }

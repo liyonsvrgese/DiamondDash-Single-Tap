@@ -26,6 +26,7 @@ namespace PKPL.DiamondRush.Board
         private Vector2 startPos;
         private Coroutine clearCoroutine;
         private List<NodeIndex> deletedNodes;
+        private int currentMoves = 0;
 
         protected override void Start()
         {
@@ -106,7 +107,7 @@ namespace PKPL.DiamondRush.Board
         {
             GService.SetTouchAvailable(false);
 
-            if(GService.IsPowerupActivated)
+            if(GService.IsClickablePowerupActivated)
             {
                 ProcessPowerup(node);
                 GService.TriggerOnPowerupComplete();
@@ -116,11 +117,12 @@ namespace PKPL.DiamondRush.Board
             List<Node> matches = new List<Node>();
             matches.Add(node);
 
-            FindMatchesRecursively(node, matches);
+            FindMatches(node, matches);
 
             if (matches.Count >= 2)
             {
                 ClearMatchesAndRefill(matches);
+                currentMoves++;
             }
             else
             {
@@ -128,7 +130,15 @@ namespace PKPL.DiamondRush.Board
             }
         }
 
-        private void FindMatchesRecursively(Node node, List<Node> matches)
+        public int GetAndResetMovesCount()
+        {
+            int temp = currentMoves;
+            currentMoves = 0;
+            return temp;
+        }
+
+
+        private void FindMatches(Node node, List<Node> matches)
         {
             CheckMatchesInDirection(node, Direction.up, matches);
             CheckMatchesInDirection(node, Direction.down, matches);
@@ -143,7 +153,7 @@ namespace PKPL.DiamondRush.Board
             if (neighbor != null && neighbor.Type == node.Type && !matches.Contains(neighbor))
             {
                 matches.Add(neighbor);
-                FindMatchesRecursively(neighbor, matches);
+                FindMatches(neighbor, matches);
             }
         }
         private Node GetNeighbor(Node node, Direction direction)
@@ -192,12 +202,12 @@ namespace PKPL.DiamondRush.Board
             List<Node> matches = new() ;
             switch(GService.PowerupType)
             {
-                case AbilityType.None:
+                case PowerupType.None:
                     break ;
-                case AbilityType.Bomb:
+                case PowerupType.Bomb:
                     matches =GetBombNodes(node);
                     break;
-                case AbilityType.ColorDestroy:
+                case PowerupType.ColorDestroy:
                     matches = GetColorDestroyNodes(node);
                     break;
             }
@@ -280,7 +290,7 @@ namespace PKPL.DiamondRush.Board
             foreach (var node in matches)
             {
                 deletedNodes.Add(node.Index);
-                GService.TriggerOnScoreChanged(GameConstants.SCORE_FOR_ONE_ITEM);
+                GService.IncreaseScoreForOneBlock();
                 FlyToTopAnimation(node, topPosition);
                 board[node.Index.row, node.Index.column] = null;
                 yield return new WaitForSeconds(0.015f);
@@ -393,11 +403,12 @@ namespace PKPL.DiamondRush.Board
         invalid
     }
 
-    public enum AbilityType
+    public enum PowerupType
     {
-        None,
-        Bomb,
-        ColorDestroy
+        None = -1,
+        Bomb = 0 ,
+        ColorDestroy = 1,
+        TwoxScore = 2
     }
 
 }
